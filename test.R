@@ -1,0 +1,10 @@
+#library(rgdal)
+#library(maptools)
+#library(rgeos)
+#library(raster)
+#installed.packages()
+install.packages("dplyr")
+#library(plyr)
+#library(fields)
+# test
+print("hello world")
