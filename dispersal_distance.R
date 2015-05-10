@@ -1,5 +1,12 @@
 type_year <- commandArgs(TRUE)[1]
 PLD <- commandArgs(TRUE)[2]
+bin <- commandArgs(TRUE)[3]
+
+print("output from dispersal_distance.R")
+
+print(type_year)
+print(PLD)
+print(bin)
 
 library(rgdal)
 library(maptools)
@@ -25,7 +32,7 @@ crs(ras) <- crs(BCshp)
 extent(ras) <- extent(c(lon1 = -140, lon2 = -120, lat1 = 45, lat2 = 60))
 BCras <- is.na(rasterize(BCshp, ras))
 BCras[BCras==0] <- 9999
-plot(BCras)
+# plot(BCras)
 # create a Transition object from the raster
 # this calculation took a bit of time
 library(gdistance)
@@ -37,11 +44,13 @@ tr <- geoCorrection(tr,type="c")
 #### open tabulated output data and grid shapefile ####
 type <- substr(type_year,1,1)
 year <- substr(type_year,2,5)
-fn <- paste0(type,"_data_",year,"_pld_",PLD,".csv")
+fn <- paste0(type,"_data_",year,"_pld_",PLD,"_bin_",bin,".csv")
 print(fn)
 
 #### open tabulated output data ####
-data <- read.csv(paste0("/sb/project/uxb-461-aa/Cuke-MPA/positions/",fn))
+data <- read.csv(paste0("/sb/project/uxb-461-aa/Cuke-MPA/positions/temp/",fn))
+# unlink(paste0("/sb/project/uxb-461-aa/Cuke-MPA/positions/",fn))
+
 
 #### calculate Euclidean distance ####
 print("calculate Euclidean distance")
@@ -51,9 +60,9 @@ data$Euclidist <- adply(data,1,mutate,
 
 
 #### Create subset chunks that can be used by dplyr for in-sea distance ####
-print("calculate in-sea distance")
+print("chunk the data")
 
-data$IDS=as.numeric(rownames(data))
+# data$IDS=as.numeric(rownames(data))
 data$chunks=cut(data$IDS,1000)
 
 
@@ -72,33 +81,45 @@ SeaDist=function(x,tr){
 	return(seaDist)
 }
 
-
+print("calculate in-sea distance")
 #### subsetted version of in-sea distance ####
 Dists=filter(data,chunks %in% unique(data$chunks))%>%group_by(chunks)%>%do(Dispersal=SeaDist(.,tr=tr))
 
+print("unlist")
 #unlist the object
 dispersal.distance=unlist(Dists$Dispersal)
 
+print("add to data")
 #add the object to the data
 data2=filter(data,chunks %in% unique(data$chunks))
 data2$sea_dist=dispersal.distance
 
+print("filter")
 #filter wonky results
 data2$sea_dist[data2$sea_dist>2000] <- data2$Euclidist[data2$sea_dist>2000]
 
 
 
-head(data2)
-data2 %>%
-	group_by(Site) %>%
-	summarise(avg = mean(sea_dist,na.rm=T))
+#head(data2)
+#data2 %>%
+#	group_by(Site) %>%
+#	summarise(avg = mean(sea_dist,na.rm=T))
 
 # site
-for(s in unique(data2$Site)){
-	hist(log(data2$sea_dist[data2$Site==s]+1),breaks=c(0:8),xlim=c(0,8),main=paste(s,year),xlab="ln(Dispersal Distance)")
-}
+#for(s in unique(data2$Site)){
+#	hist(log(data2$sea_dist[data2$Site==s]+1),breaks=c(0:8),xlim=c(0,8),main=paste(s,year),xlab="ln(Dispersal Distance)")
+#}
 
 # year
-hist(log(data2$sea_dist+1),breaks=c(0:8),xlim=c(0,8),main=year,xlab="ln(Dispersal Distance)")
+#hist(log(data2$sea_dist+1),breaks=c(0:8),xlim=c(0,8),main=year,xlab="ln(Dispersal Distance)")
+if((length(readLines(paste0("/sb/project/uxb-461-aa/Cuke-MPA/positions/temp/",fn)))-1)==length(data2$Euclidist)){
+	print("write data in temp2")
+	write.csv(data2,paste0("/sb/project/uxb-461-aa/Cuke-MPA/positions/temp2/",fn))
+} else {
+	print("original length")
+	print(length(readLines(paste0("/sb/project/uxb-461-aa/Cuke-MPA/positions/temp/",fn))))
+	print("new length")
+	print(length(data2$Euclidist))
+}
 
-write.csv(data2,paste0("/sb/project/uxb-461-aa/Cuke-MPA/positions/processed/",fn))                 
+                 

@@ -1,8 +1,11 @@
 #!/bin/bash
-#PBS -l walltime=3:00:00
+#PBS -l walltime=1:00:00
 #PBS -l nodes=1:ppn=2
+
 type_year=$t
 PLD=$P
+echo "output from distances_cleanup.sh"
+echo $t $P 
 
 rm -rfv core.*
 rm -rfv d_*
@@ -15,4 +18,5 @@ module load PROJ/4.8.0
 module load R/3.1.2
 module list
 
-Rscript distances_master.R $type_year $PLD
+echo 'Rscript distances_cleanup.R' $type_year $PLD
+Rscript distances_cleanup.R $type_year $PLD
