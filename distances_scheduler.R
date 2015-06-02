@@ -26,25 +26,36 @@ filenames <- data.frame(matrix(unlist(sapply(filenames,strsplit,"_")),nrow=lengt
 names(filenames)=c('type','txt','year','txt2','pld')
 filenames$pld <- substr(filenames$pld,1,nchar(as.character(filenames$pld))-4)
 
+filenames <- filenames[filenames$type=="A",]
 
-while(length(Q$jobname)<1500 | length(dc$job)<10){
+n <- 10
+if(sum(dc$type=="G")>=10) n <- 10
+if(sum(dc$type=="S")>=10) n <- 10
+
+
+while(length(Q$jobname)<1000 & length(dc$job)<n){
+	if(sum(dc$type=="G")>=10) n <- 10
+	if(sum(dc$type=="S")>=10) n <- 10
 	dc <- rbind(dc,data.frame(job='dc',type_year=paste0(filenames$type[1],filenames$year[1]),PLD=filenames$pld[1],type=filenames$type[1],year=filenames$year[1]))
+	print(filenames[1,])
 	system(paste0('qsub -A uxb-461-aa -N d_',filenames$type[1],filenames$year[1],filenames$pld[1],' -v t=',filenames$type[1],filenames$year[1],',P=',filenames$pld[1],' ./distances.sh'))
 	filenames <- filenames[-1,]
-	Sys.sleep(10*60)
+	Sys.sleep(60)
 	system('qstat -u rdaigle >queue.txt')
+	Sys.sleep(60)
 	system('tail -n +6 queue.txt > queue2.txt')
+	Sys.sleep(60)
 	Q <- read.table("queue2.txt", quote="\"")
-	unlink('queue*')
+	#unlink('queue*')
 	names(Q)=c('job_ID','Username','Queue','jobname','sessID','NDS','TSK','Rmem','Rtime','S','Etime')
 }
 
 
 print("re-start scheduler")
-delayH <- as.numeric(strftime(Sys.time(),"%H"))+3
-delayM <- as.numeric(strftime(Sys.time(),"%M"))
-if(delayM>60) delayH <- delayH+1
-if(delayM>60) delayM <- delayM-60
+delayH <- as.numeric(strftime(Sys.time(),"%H"))
+delayM <- as.numeric(strftime(Sys.time(),"%M"))+15
+if(delayM>=60) delayH <- delayH+1
+if(delayM>=60) delayM <- delayM-60
 delaytime <- as.numeric(paste0(delayH,formatC(delayM, width = 2, format = "d", flag = "0")))
 if(delaytime>2400) delaytime <- delaytime-2400
 command <- paste0("qsub -a ",formatC(delaytime, width = 4, format = "d", flag = "0")," -A uxb-461-aa ./distances_scheduler.sh")

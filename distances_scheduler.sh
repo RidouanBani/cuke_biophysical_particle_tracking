@@ -3,6 +3,10 @@
 
 echo "output from distances_scheduler.sh"
 
+find /sb/project/uxb-461-aa/Cuke-MPA/positions/temp/ -type f -mtime +1 -exec rm {} \;
+find /sb/project/uxb-461-aa/Cuke-MPA/positions/temp2/ -type f -mtime +1 -exec rm {} \;
+
+
 rm -rfv core.*
 rm -rfv d_*
 rm -rfv ds_*

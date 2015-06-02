@@ -10,7 +10,7 @@ echo $t $P
 rm -rfv core.*
 rm -rfv d_*
 rm -rfv ds_*
-rm -rfv dc_*
+ rm -rfv dc_$type_year*
 
 module load GDAL/1.9.2
 module load GEOS/3.4.2

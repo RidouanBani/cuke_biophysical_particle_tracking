@@ -60,10 +60,10 @@ data$Euclidist <- adply(data,1,mutate,
 
 
 #### Create subset chunks that can be used by dplyr for in-sea distance ####
-print("chunk the data")
+#print("chunk the data")
 
 # data$IDS=as.numeric(rownames(data))
-data$chunks=cut(data$IDS,1000)
+#data$chunks=cut(data$IDS,1000)
 
 
 SeaDist=function(x,tr){
@@ -83,38 +83,31 @@ SeaDist=function(x,tr){
 
 print("calculate in-sea distance")
 #### subsetted version of in-sea distance ####
-Dists=filter(data,chunks %in% unique(data$chunks))%>%group_by(chunks)%>%do(Dispersal=SeaDist(.,tr=tr))
+#Dists=filter(data,chunks %in% unique(data$chunks))%>%group_by(chunks)%>%do(Dispersal=SeaDist(.,tr=tr))
 
 print("unlist")
 #unlist the object
-dispersal.distance=unlist(Dists$Dispersal)
+#dispersal.distance=unlist(Dists$Dispersal)
 
 print("add to data")
 #add the object to the data
-data2=filter(data,chunks %in% unique(data$chunks))
-data2$sea_dist=dispersal.distance
+#data2=filter(data,chunks %in% unique(data$chunks))
+#data2$sea_dist=dispersal.distance
+
+data$sea_dist <- SeaDist(data,tr)
 
 print("filter")
 #filter wonky results
-data2$sea_dist[data2$sea_dist>2000] <- data2$Euclidist[data2$sea_dist>2000]
+#data2$sea_dist[data2$sea_dist>2000] <- data2$Euclidist[data2$sea_dist>2000]
 
 
 
-#head(data2)
-#data2 %>%
-#	group_by(Site) %>%
-#	summarise(avg = mean(sea_dist,na.rm=T))
 
-# site
-#for(s in unique(data2$Site)){
-#	hist(log(data2$sea_dist[data2$Site==s]+1),breaks=c(0:8),xlim=c(0,8),main=paste(s,year),xlab="ln(Dispersal Distance)")
-#}
-
-# year
-#hist(log(data2$sea_dist+1),breaks=c(0:8),xlim=c(0,8),main=year,xlab="ln(Dispersal Distance)")
-if((length(readLines(paste0("/sb/project/uxb-461-aa/Cuke-MPA/positions/temp/",fn)))-1)==length(data2$Euclidist)){
+if((length(readLines(paste0("/sb/project/uxb-461-aa/Cuke-MPA/positions/temp/",fn)))-1)==length(data$Euclidist)){
+#if((length(readLines(paste0("/sb/project/uxb-461-aa/Cuke-MPA/positions/temp/",fn)))-1)==length(data2$Euclidist)){
 	print("write data in temp2")
-	write.csv(data2,paste0("/sb/project/uxb-461-aa/Cuke-MPA/positions/temp2/",fn))
+	write.csv(data,paste0("/sb/project/uxb-461-aa/Cuke-MPA/positions/temp2/",fn))
+	#write.csv(data2,paste0("/sb/project/uxb-461-aa/Cuke-MPA/positions/temp2/",fn))
 } else {
 	print("original length")
 	print(length(readLines(paste0("/sb/project/uxb-461-aa/Cuke-MPA/positions/temp/",fn))))

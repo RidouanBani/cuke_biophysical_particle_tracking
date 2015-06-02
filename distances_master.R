@@ -17,15 +17,18 @@ data$IDS <- as.numeric(rownames(data))
 fn2 <- substr(fn,1,nchar(fn)-4)
 unlink(paste0("/sb/project/uxb-461-aa/Cuke-MPA/positions/temp/",fn2,"*"))
 unlink(paste0("/sb/project/uxb-461-aa/Cuke-MPA/positions/temp2/",fn2,"*"))
-unlink(paste0("/sb/project/uxb-461-aa/Cuke-MPA/positions/processed/",fn2,"*"))
+#unlink(paste0("/sb/project/uxb-461-aa/Cuke-MPA/positions/processed/",fn2,"*"))
 
-splits <- 20
+splits <- 200
 filenames <- NULL
 #for(bin in 1){
 for(bin in seq_along(unique(data$bin))){
 	n <- dim(data[data$bin==bin,])[1]
 	for(i in 1:splits){
-		bins <- paste0(letters[i],bin)
+		first <- letters[as.numeric(substr(formatC(i, width = 3, format = "d", flag = "0"),1,1))+1]
+		second <- letters[as.numeric(substr(formatC(i, width = 3, format = "d", flag = "0"),2,2))+1]
+		third <- letters[as.numeric(substr(formatC(i, width = 3, format = "d", flag = "0"),3,3))+1]	
+		bins <- paste0(first,second,third,bin)
 		print(paste("writing bin ",bins))
 		write.csv(split(data[data$bin==bin,], rep(1:splits, each=(ceiling(n/splits))))[[i]],paste0("/sb/project/uxb-461-aa/Cuke-MPA/positions/temp/",fn2,"_bin_",bins,".csv"))
 		filenames <- c(filenames,paste0(fn2,"_bin_",bins))
